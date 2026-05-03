@@ -28,30 +28,32 @@ export default function Journey() {
   const [showAllDocs, setShowAllDocs] = useState(false); // Controls document list expansion
 
   /**
-   * DATA FETCHING LIFECYCLE
-   * -----------------------
-   * Fetches the regional election configuration based on the user's selected state.
+   * HYDRATION GUARD
+   * Ensures the component only renders client-specific data after mounting.
    */
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
+  /**
+   * DATA FETCHING LIFECYCLE
+   * Fetches regional election configuration when the profile region is available.
+   */
+  useEffect(() => {
     const fetchConfig = async () => {
       if (profile?.region) {
         setIsLoadingConfig(true);
-        // Attempt to fetch live config from Firestore
         const config = await getElectionConfig(profile.region);
-        if (config) {
-          setElectionData(config);
-        } else {
-          // Fallback to local mock data if the region isn't in DB yet
-          setElectionData(mockIndianElectionData);
-        }
+        setElectionData(config || mockIndianElectionData);
         setIsLoadingConfig(false);
       }
     };
 
-    fetchConfig();
-  }, [profile?.region]);
+    if (mounted) {
+      fetchConfig();
+    }
+  }, [profile?.region, mounted]);
 
   // Ensure client-side rendering only after hydration
   if (!isHydrated || !mounted) return null;
@@ -60,7 +62,7 @@ export default function Journey() {
   if (!profile) {
     return (
       <div className={`container ${styles.emptyState}`}>
-        <h2>You haven't set up your journey yet</h2>
+        <h2>You haven&apos;t set up your journey yet</h2>
         <p>Take a quick 2-minute setup to get your personalized election timeline.</p>
         <Button onClick={() => router.push('/onboarding')}>Start Setup</Button>
       </div>

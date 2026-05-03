@@ -212,7 +212,7 @@ export default function Myths() {
           ))
         ) : (
           <div className={styles.noResults}>
-            <p>No myths found for "{searchTerm}". Try a different keyword.</p>
+            <p>No myths found for &quot;{searchTerm}&quot;. Try a different keyword.</p>
           </div>
         )}
       </div>

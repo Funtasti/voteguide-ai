@@ -5,6 +5,7 @@ import React from "react";
 import { UserProvider } from "@/context/UserContext";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -43,17 +44,18 @@ export default function RootLayout({
       </head>
       <body>
         <UserProvider>
-          <a href="#main-content" className="visually-hidden focus:not-visually-hidden">
-            Skip to main content
-          </a>
-          <Header />
-          <main id="main-content">
-            {children}
-          </main>
-          <Footer />
+          <ErrorBoundary>
+            <a href="#main-content" className="visually-hidden focus:not-visually-hidden">
+              Skip to main content
+            </a>
+            <Header />
+            <main id="main-content">
+              {children}
+            </main>
+            <Footer />
+          </ErrorBoundary>
         </UserProvider>
       </body>
     </html>
   );
 }
-

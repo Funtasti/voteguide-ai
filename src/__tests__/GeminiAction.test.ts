@@ -1,6 +1,26 @@
 // Set environment variables BEFORE importing the module
 process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'test-project';
 
+// Mock the Google Cloud libraries
+const mockLogWrite = jest.fn().mockResolvedValue({});
+const mockLogEntry = jest.fn().mockReturnValue({});
+const mockErrorReport = jest.fn();
+
+jest.mock('@google-cloud/logging', () => ({
+  Logging: jest.fn().mockImplementation(() => ({
+    log: jest.fn().mockImplementation(() => ({
+      entry: mockLogEntry,
+      write: mockLogWrite,
+    })),
+  })),
+}));
+
+jest.mock('@google-cloud/error-reporting', () => ({
+  ErrorReporting: jest.fn().mockImplementation(() => ({
+    report: mockErrorReport,
+  })),
+}));
+
 // Mock the Google GenAI SDK
 const mockGenerateContent = jest.fn();
 
@@ -37,5 +57,33 @@ describe('Gemini Action', () => {
     const result = await askGemini("test");
     
     expect(result.error).toContain("The AI Assistant is currently unavailable");
+    expect(mockErrorReport).toHaveBeenCalled();
+    expect(mockLogWrite).toHaveBeenCalled();
+  });
+
+  it('returns a specific error for authentication failures', async () => {
+    mockGenerateContent.mockRejectedValue(new Error("Authentication failed"));
+
+    const result = await askGemini("test");
+    
+    expect(result.error).toContain("AI Authentication Error");
+  });
+
+  it('handles empty responses gracefully', async () => {
+    mockGenerateContent.mockResolvedValue({ text: "" });
+
+    const result = await askGemini("test");
+    
+    expect(result.error).toContain("The AI Assistant is currently unavailable");
+  });
+
+  it('logs an error to console if Cloud Logging fails', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockLogWrite.mockRejectedValueOnce(new Error("Logging error"));
+
+    await askGemini("test");
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Cloud Logging failed:"), "Logging error");
+    consoleSpy.mockRestore();
   });
 });

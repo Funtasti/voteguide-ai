@@ -33,7 +33,7 @@ Object.defineProperty(window, 'speechSynthesis', {
 });
 
 // Mock SpeechSynthesisUtterance
-(window as any).SpeechSynthesisUtterance = jest.fn();
+(window as unknown as { SpeechSynthesisUtterance: jest.Mock }).SpeechSynthesisUtterance = jest.fn();
 
 import MythsPage from '@/app/myths/page';
 import { mockIndianElectionData } from '@/data/indianElections';
@@ -80,11 +80,8 @@ describe('Myths Page', () => {
     
     render(<MythsPage />);
     const input = screen.getByPlaceholderText(/Can I vote if my name is missing/i);
-    // There are multiple buttons (Read Aloud buttons + Submit button)
-    // The submit button is the one inside the form
-    const submitBtn = screen.getByRole('button', { name: '' }); // The one with no label but is a button
-    // Actually, let's just find the button with the Send icon (which is not easily findable by name)
-    // Or just the button that is NOT "Read Aloud"
+    
+    // Find the button that is NOT "Read Aloud"
     const buttons = screen.getAllByRole('button');
     const sendBtn = buttons.find(b => !b.getAttribute('aria-label')?.includes('Read aloud'));
     

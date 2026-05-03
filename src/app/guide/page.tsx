@@ -176,7 +176,7 @@ export default function Guide() {
     <div className={`container ${styles.guideContainer}`}>
       <header className={styles.header}>
         <h1>What Happens Next?</h1>
-        <p>Choose your situation and we'll walk you through exactly what to do, step by step.</p>
+        <p>Choose your situation and we&apos;ll walk you through exactly what to do, step by step.</p>
       </header>
 
       {!selectedScenario ? (

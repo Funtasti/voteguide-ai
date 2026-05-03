@@ -1,5 +1,13 @@
 import * as firebaseFirestore from 'firebase/firestore';
 import * as firebaseAuth from 'firebase/auth';
+import { 
+  saveProfileToFirestore, 
+  getProfileFromFirestore,
+  ensureAnonymousAuth,
+  getElectionConfig
+} from '@/lib/firebase/services';
+import { db, auth } from '@/lib/firebase/firebase';
+import { User } from 'firebase/auth';
 
 jest.mock('@/lib/firebase/firebase', () => ({
   db: { type: 'firestore' },
@@ -9,7 +17,7 @@ jest.mock('@/lib/firebase/firebase', () => ({
 // Mock Firebase
 jest.mock('firebase/firestore', () => ({
   getFirestore: jest.fn(),
-  doc: jest.fn((db, coll, id) => ({ path: `${coll}/${id}` })),
+  doc: jest.fn((_db, coll, id) => ({ path: `${coll}/${id}` })),
   setDoc: jest.fn(),
   getDoc: jest.fn(),
   collection: jest.fn(),
@@ -24,23 +32,16 @@ jest.mock('firebase/auth', () => ({
   onAuthStateChanged: jest.fn(),
 }));
 
-import { 
-  saveProfileToFirestore, 
-  getProfileFromFirestore,
-  ensureAnonymousAuth 
-} from '@/lib/firebase/services';
-import { db, auth } from '@/lib/firebase/firebase';
-
 describe('Firebase Services', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (auth as any).currentUser = null;
+    (auth as { currentUser: User | null }).currentUser = null;
   });
 
   describe('ensureAnonymousAuth', () => {
     it('returns current user if already signed in', async () => {
-      const mockUser = { uid: 'existing-uid' };
-      (auth as any).currentUser = mockUser;
+      const mockUser = { uid: 'existing-uid' } as User;
+      (auth as { currentUser: User | null }).currentUser = mockUser;
       
       const user = await ensureAnonymousAuth();
       expect(user).toEqual(mockUser);
@@ -48,9 +49,9 @@ describe('Firebase Services', () => {
     });
 
     it('signs in anonymously if no current user', async () => {
-      const mockUser = { uid: 'new-uid' };
+      const mockUser = { uid: 'new-uid' } as User;
       // Mock onAuthStateChanged to call callback asynchronously so unsubscribe is defined
-      (firebaseAuth.onAuthStateChanged as jest.Mock).mockImplementation((auth, callback) => {
+      (firebaseAuth.onAuthStateChanged as jest.Mock).mockImplementation((_auth, callback) => {
         setTimeout(() => callback(null), 0);
         return jest.fn();
       });
@@ -60,6 +61,27 @@ describe('Firebase Services', () => {
       expect(user).toEqual(mockUser);
       expect(firebaseAuth.signInAnonymously).toHaveBeenCalled();
     });
+
+    it('resolves if onAuthStateChanged returns a user', async () => {
+      const mockUser = { uid: 'auth-changed-uid' } as User;
+      (firebaseAuth.onAuthStateChanged as jest.Mock).mockImplementation((_auth, callback) => {
+        setTimeout(() => callback(mockUser), 0);
+        return jest.fn();
+      });
+      
+      const user = await ensureAnonymousAuth();
+      expect(user).toEqual(mockUser);
+    });
+
+    it('rejects if signInAnonymously fails', async () => {
+      (firebaseAuth.onAuthStateChanged as jest.Mock).mockImplementation((_auth, callback) => {
+        setTimeout(() => callback(null), 0);
+        return jest.fn();
+      });
+      (firebaseAuth.signInAnonymously as jest.Mock).mockRejectedValue(new Error("Auth Error"));
+      
+      await expect(ensureAnonymousAuth()).rejects.toThrow("Auth Error");
+    });
   });
 
   describe('saveProfileToFirestore', () => {
@@ -67,7 +89,7 @@ describe('Firebase Services', () => {
       const profile = { region: 'India', isFirstTimeVoter: true, ageGroup: '18+', concerns: [] };
       const uid = 'test-uid';
       
-      await saveProfileToFirestore(uid, profile as any);
+      await saveProfileToFirestore(uid, profile);
       
       expect(firebaseFirestore.doc).toHaveBeenCalledWith(db, 'users', uid);
       expect(firebaseFirestore.setDoc).toHaveBeenCalledWith(
@@ -97,6 +119,35 @@ describe('Firebase Services', () => {
       
       const profile = await getProfileFromFirestore('test-uid');
       expect(profile).toBeNull();
+    });
+  });
+
+  describe('getElectionConfig', () => {
+    it('returns config if region matches', async () => {
+      const mockConfig = { region: 'Maharashtra', phases: [] };
+      (firebaseFirestore.getDocs as jest.Mock).mockResolvedValue({
+        empty: false,
+        docs: [{ data: () => mockConfig }]
+      });
+      
+      const config = await getElectionConfig('Maharashtra');
+      expect(config).toEqual(mockConfig);
+    });
+
+    it('returns null if no config found', async () => {
+      (firebaseFirestore.getDocs as jest.Mock).mockResolvedValue({ empty: true });
+      const config = await getElectionConfig('Unknown');
+      expect(config).toBeNull();
+    });
+
+    it('handles query errors gracefully', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      (firebaseFirestore.getDocs as jest.Mock).mockRejectedValue(new Error("Firestore Fail"));
+      
+      const config = await getElectionConfig('Fail');
+      expect(config).toBeNull();
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
     });
   });
 });

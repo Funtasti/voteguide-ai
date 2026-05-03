@@ -57,6 +57,23 @@ describe('getNextPhase', () => {
     ];
     expect(getNextPhase(allPast, TODAY)).toBeNull();
   });
+
+  describe('default parameters', () => {
+    it('uses current date if today is not provided', () => {
+      const phases = [{ id: '1', title: 'Test', date: '2020-01-01', description: '' }];
+      // partitionPhases
+      const result = partitionPhases(phases);
+      expect(result.past.length).toBe(1);
+      
+      // getNextPhase
+      const next = getNextPhase(phases);
+      expect(next).toBeNull();
+      
+      // daysUntil
+      const days = daysUntil('2020-01-01');
+      expect(days).toBeLessThan(0);
+    });
+  });
 });
 
 describe('daysUntil', () => {

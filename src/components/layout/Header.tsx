@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Vote, Cloud, CloudCheck, RefreshCw } from 'lucide-react';
+import { Vote, Cloud, RefreshCw } from 'lucide-react';
 import { useUserContext } from '@/context/UserContext';
 import styles from './Header.module.css';
 

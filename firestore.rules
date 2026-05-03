@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: Is the user authenticated?
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: Is this the user's own document?
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // 1. User Profiles
+    // Users can only read/write their own profiles.
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // 2. Election Configuration
+    // Anyone can read regional configurations (Public knowledge).
+    // No one can write via the frontend (Admin only via GCP Console/Cloud Build).
+    match /electionConfigs/{configId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 3. Global Stats (Optional future feature)
+    match /stats/{statId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

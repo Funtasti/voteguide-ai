@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
-import Link from 'next/link';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserContext } from '@/context/UserContext';
 import { Button } from '@/components/ui/Button';
@@ -57,7 +56,7 @@ export default function Home() {
               </div>
               <h3 className={styles.featureTitle}>Personalized Timeline</h3>
               <p className={styles.featureDesc}>
-                Tell us a bit about yourself, and we'll build a custom timeline showing exactly what you need to do and when.
+                Tell us a bit about yourself, and we&apos;ll build a custom timeline showing exactly what you need to do and when.
               </p>
             </div>
             

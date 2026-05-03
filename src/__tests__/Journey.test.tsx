@@ -26,15 +26,18 @@ describe('Journey Page', () => {
     jest.clearAllMocks();
   });
 
-  it('renders empty state when no profile exists', () => {
+  it('renders empty state when no profile exists', async () => {
     mockUseUserContext.mockReturnValue({
       profile: null,
       isHydrated: true,
     });
 
     render(<Journey />);
-    expect(screen.getByText(/You haven't set up your journey yet/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Start Setup/i })).toBeInTheDocument();
+    
+    await waitFor(() => {
+      expect(screen.getByText(/You haven.t set up your journey yet/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Start Setup/i })).toBeInTheDocument();
+    });
   });
 
   it('renders the timeline when a profile exists', async () => {

@@ -39,13 +39,23 @@ const QUESTIONS = [
  * A multi-step form that captures user context.
  * It provides a "zero-barrier" entry by not requiring email/password.
  */
+/**
+ * Type definition for the onboarding form state.
+ */
+interface OnboardingAnswers {
+  region: string;
+  isFirstTimeVoter: string;
+  concerns: string[];
+  [key: string]: string | string[]; // Required for dynamic indexing by question.id
+}
+
 export default function Onboarding() {
   const router = useRouter();
   const { saveProfile, isSyncing } = useUserContext();
   
   // --- STATE MANAGEMENT ---
   const [step, setStep] = useState(0); // Tracks current question index
-  const [answers, setAnswers] = useState<Record<string, any>>({
+  const [answers, setAnswers] = useState<OnboardingAnswers>({
     region: 'India (National)',
     isFirstTimeVoter: '',
     concerns: []

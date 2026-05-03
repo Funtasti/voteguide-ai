@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "coverage": "jest --coverage"
   },
   "dependencies": {
     "@google-cloud/error-reporting": "^3.0.5",
