@@ -1,0 +1,168 @@
+.homeContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 4rem);
+}
+
+.heroSection {
+  padding: 6rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, var(--color-surface) 0%, var(--color-background) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.heroSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-primary), transparent);
+  opacity: 0.2;
+}
+
+.heroContent {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  animation: fadeIn var(--transition-normal);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+}
+
+.badge span:first-child {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.badgeText {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.gradientText {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  max-width: 600px;
+  margin: 0 auto 3rem auto;
+  line-height: 1.6;
+}
+
+.heroActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.featuresSection {
+  padding: 5rem 0;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .featuresGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+  }
+}
+
+.featureCard {
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.featureIconContainer {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-md);
+  background-color: rgba(37, 99, 235, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  color: var(--color-primary);
+}
+
+.featureTitle {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.featureDesc {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+  
+  .heroActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .heroActions button {
+    width: 100%;
+  }
+}
