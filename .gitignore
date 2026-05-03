@@ -23,7 +23,6 @@
 # misc
 .DS_Store
 *.pem
-cloudbuild.yaml
 
 # debug
 npm-debug.log*
