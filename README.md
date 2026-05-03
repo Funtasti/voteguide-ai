@@ -19,54 +19,57 @@ VoteGuide AI is a production-grade web application designed to help first-time v
 
 ---
 
-## ✨ Key Features for Citizens
+## 🛠️ Project Philosophy & Design
+
+### **Chosen Vertical: Civic Engagement**
+In the world's largest democracy, information is often fragmented. VoteGuide AI centralizes civic data and uses AI to make it personalized and actionable for every citizen.
+
+### **The Approach**
+Our design logic is centered on **"Zero-Friction Access"**:
+*   **Privacy-First Onboarding**: We use Firebase Anonymous Authentication to allow users to save their progress without requiring a phone number or email immediately.
+*   **Dual-Layered Persistence**: Logic is split between **LocalStorage** (for instant, offline-first access) and **Cloud Firestore** (for secure, cross-device synchronization).
+*   **Intelligent Routing**: The application remembers user state; returning users are automatically routed to their personalized journey, while new users are guided through discovery.
+
+### **System Logic**
+*   **Dynamic Roadmaps**: Deadlines are calculated based on a matrix of regional phases and user voter status.
+*   **Verification Engine**: The Myth Buster integrates Google Gemini 1.5 to provide real-time explanations for complex election rumors.
+*   **Accessibility First**: Built-in "Read Aloud" features ensure the solution works for users with varying literacy or vision levels.
+
+---
+
+## ✨ Key Features
 
 *   🗺️ **Personalized Timeline**: A roadmap that stays with you. No more guessing when your registration or polling day is.
 *   🤖 **AI Civic Assistant**: Powered by Google Gemini, it's like having an election expert in your pocket.
 *   🛡️ **Myth Buster**: Protect your vote from misinformation. We verify common election rumors with cold, hard facts.
-*   🔊 **Accessibility for All**: Includes "Read Aloud" features for low-vision users and simplified guides for everyone.
-*   🛤️ **"What Happens Next?"**: Four specific paths (First-time, Returning, Missed Deadline, and Confused) that provide actionable advice for different user situations.
+*   🛤️ **Actionable Scenarios**: Specific paths for First-time voters, Returning voters, and those who missed deadlines.
 
 ---
 
-## 🛡️ Privacy & Security
+## 🛡️ Security & Privacy
 
-We believe your vote is private, and so is your data. 
-*   **Anonymous First**: You can use almost every feature without creating an account.
-*   **Secure Sync**: Your journey is saved locally and synced to the cloud (Firebase) automatically using encrypted channels.
-*   **Verified Data**: All election dates and rules are sourced from verified civic data and official guidelines.
-*   **Enterprise-Grade Identity**: The AI Assistant uses Vertex AI identity-based access, ensuring no API keys are exposed to the browser.
+*   **Secure Identity**: The AI Assistant uses Vertex AI identity-based access, ensuring no API keys are exposed to the browser.
+*   **Data Integrity**: Firestore Security Rules ensure users can only access their own private profiles.
+*   **Development Assumptions**:
+    *   The roadmap uses demo data modeled on the 2026 Lok Sabha cycle.
+    *   Procedures are based on the latest official guidelines for registration and polling.
+    *   A live connection is used for AI features, but the core UI is resilient through local caching.
 
 ---
 
-## 🛠️ Technology Stack
+## 🏗️ Technology Stack
 
 | Layer | Technology | Rationale |
 |---|---|---|
-| **Frontend** | [Next.js 15+](https://nextjs.org/) | App Router for optimal routing and Server Components for performance. |
-| **Styling** | [Vanilla CSS](https://developer.mozilla.org/en-US/docs/Web/CSS) | High-performance, zero-runtime overhead, and maximum design flexibility. |
-| **AI** | [Google Gemini 1.5](https://deepmind.google/technologies/gemini/) | State-of-the-art LLM for providing accurate, identity-aware civic assistance. |
-| **Database** | [Cloud Firestore](https://firebase.google.com/docs/firestore) | Real-time cloud sync for user profiles and regional election configurations. |
-| **Auth** | [Firebase Auth](https://firebase.google.com/docs/auth) | Anonymous authentication for a frictionless user experience. |
-| **Testing** | [Jest](https://jestjs.io/) + [RTL](https://testing-library.com/docs/react-testing-library/intro/) | Comprehensive test suite (~80% coverage) for business logic and UI. |
+| **Frontend** | [Next.js 15+](https://nextjs.org/) | App Router and Server Components for production performance. |
+| **Styling** | [Vanilla CSS](https://developer.mozilla.org/en-US/docs/Web/CSS) | Clean, high-performance, and flexible. |
+| **AI** | [Google Gemini 1.5](https://deepmind.google/technologies/gemini/) | State-of-the-art LLM via Vertex AI for secure assistance. |
+| **Database** | [Cloud Firestore](https://firebase.google.com/docs/firestore) | Real-time cloud sync for user profiles. |
+| **Testing** | [Jest](https://jestjs.io/) + [RTL](https://testing-library.com/docs/react-testing-library/intro/) | Comprehensive test suite (~80% coverage). |
 
 ---
 
-## 🏗️ Architecture & Data Flow
-
-### User State Management
-The application uses a unified `UserContext` that manages a dual-layered storage strategy:
-1. **Local Storage**: For instant, offline-first access and zero-friction anonymous sessions.
-2. **Cloud Sync**: Automatic background synchronization with Firestore, ensuring cross-device persistence.
-
-### Navigation Logic ("Smart Routing")
-- The app dynamically redirects users based on their progress:
-  - **"My Journey"** leads to `/journey` (results) if a profile exists, or `/onboarding` (setup) if they are new.
-  - **"Retake Questionnaire"** allows users to reset their preferences at any time.
-
----
-
-## 🚀 Getting Started
+## 🚀 Local Development
 
 ### 1. Clone and Install
 ```bash
@@ -75,23 +78,7 @@ cd voteguide-ai
 npm install
 ```
 
-### 2. Environment Configuration
-Create a `.env.local` file:
-```env
-# Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-
-# AI Assistant (Gemini / Vertex AI)
-# Local development uses GOOGLE_GENAI_API_KEY
-GOOGLE_GENAI_API_KEY=your_gemini_key
-```
-
-### 3. Run Development Server
+### 2. Run Development Server
 ```bash
 npm run dev
 ```
@@ -99,30 +86,5 @@ Navigate to [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🧪 Testing & Quality Assurance
-
-The project maintains high standards of quality with **~80% line coverage**:
-*   **Header & Navigation**: Fully tested dynamic routing logic.
-*   **UserContext**: Fully tested LocalStorage and Firestore sync lifecycle.
-*   **AI Actions**: Verified error handling and model responses.
-
-Run tests using:
-```bash
-npm test          # Single run
-npm run coverage  # View coverage report
-```
-
----
-
-## ♿ Accessibility & Design
-
-VoteGuide AI is built with the **A11Y-First** philosophy:
-- **WCAG 2.1 Compliance**: High-contrast color palettes and readable typography (Outfit & Inter).
-*   **Semantic HTML**: Proper use of landmarks and ARIA attributes for screen readers.
-*   **Motion Control**: Respects `prefers-reduced-motion` system settings.
-
----
-
 ## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see the [LICENSE](LICENSE) file for details.

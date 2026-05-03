@@ -10,24 +10,40 @@ import { Button } from '@/components/ui/Button';
 import { Calendar, CheckCircle, Clock, AlertTriangle, FileText, ArrowRight, Loader2, RotateCcw } from 'lucide-react';
 import styles from './page.module.css';
 
+/**
+ * JOURNEY PAGE
+ * ------------
+ * This is the personalized dashboard for the user.
+ * It combines their Profile (stored in Context/Cloud) with real-time Election Data
+ * to generate a custom timeline of events and deadlines.
+ */
 export default function Journey() {
   const { profile, isHydrated } = useUserContext();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [electionData, setElectionData] = useState<ElectionData | null>(null);
-  const [isLoadingConfig, setIsLoadingConfig] = useState(true);
-  const [showAllDocs, setShowAllDocs] = useState(false);
+  
+  // --- LOCAL STATE ---
+  const [mounted, setMounted] = useState(false);         // Prevents hydration mismatch
+  const [electionData, setElectionData] = useState<ElectionData | null>(null); // Fetched from Firestore
+  const [isLoadingConfig, setIsLoadingConfig] = useState(true); // Loading state for DB fetch
+  const [showAllDocs, setShowAllDocs] = useState(false); // Controls document list expansion
 
+  /**
+   * DATA FETCHING LIFECYCLE
+   * -----------------------
+   * Fetches the regional election configuration based on the user's selected state.
+   */
   useEffect(() => {
     setMounted(true);
 
     const fetchConfig = async () => {
       if (profile?.region) {
         setIsLoadingConfig(true);
+        // Attempt to fetch live config from Firestore
         const config = await getElectionConfig(profile.region);
         if (config) {
           setElectionData(config);
         } else {
+          // Fallback to local mock data if the region isn't in DB yet
           setElectionData(mockIndianElectionData);
         }
         setIsLoadingConfig(false);
@@ -37,8 +53,10 @@ export default function Journey() {
     fetchConfig();
   }, [profile?.region]);
 
+  // Ensure client-side rendering only after hydration
   if (!isHydrated || !mounted) return null;
 
+  // Empty State: Route user back to onboarding if no profile exists
   if (!profile) {
     return (
       <div className={`container ${styles.emptyState}`}>
@@ -49,6 +67,7 @@ export default function Journey() {
     );
   }
 
+  // Loading State: While fetching from Firestore
   if (isLoadingConfig || !electionData) {
     return (
       <div className={`container ${styles.loadingState}`}>
@@ -60,6 +79,10 @@ export default function Journey() {
 
   const { phases, deadlines, documentsRequired } = electionData;
 
+  /**
+   * UI HELPER: Phase Icon Logic
+   * Determines the status icon (Done, Current, Future) for timeline phases.
+   */
   const getIconForPhase = (title: string, isPast: boolean) => {
     if (isPast) return <CheckCircle className={styles.iconPast} />;
     if (title.includes('Polling')) return <AlertTriangle className={styles.iconCurrent} />;
@@ -68,6 +91,7 @@ export default function Journey() {
 
   return (
     <div className={`container ${styles.journeyContainer}`}>
+      {/* Header with User Info */}
       <header className={styles.header}>
         <div className={styles.headerTitleRow}>
           <h1>Your Election Journey</h1>
@@ -84,6 +108,7 @@ export default function Journey() {
       </header>
 
       <div className={styles.contentGrid}>
+        {/* Main Timeline Section */}
         <div className={styles.timelineSection}>
           <h2>Timeline</h2>
           <div className={styles.timeline}>
@@ -101,6 +126,7 @@ export default function Journey() {
                   </div>
                   <p className={styles.phaseDescription}>{phase.description}</p>
 
+                  {/* Contextual Action: Only show booth finder for active/future polling steps */}
                   {(!phase.isPast) && phase.title.includes('Polling') && (
                     <Button size="sm" className={styles.actionBtn} onClick={() => window.open("https://electoralsearch.eci.gov.in/pollingstation", "_blank")}>
                       Find My Booth <ArrowRight size={14} />
@@ -112,7 +138,9 @@ export default function Journey() {
           </div>
         </div>
 
+        {/* Sidebar: Contextual Info & Quick Links */}
         <div className={styles.sidebar}>
+          {/* User Concerns Summary */}
           <div className={styles.card}>
             <h3>Need Help?</h3>
             <ul className={styles.helpList}>
@@ -128,6 +156,7 @@ export default function Journey() {
             </Button>
           </div>
 
+          {/* Critical Deadlines Card */}
           <div className={`${styles.card} ${styles.alertCard}`}>
             <h3>Important Deadlines</h3>
             <div className={styles.deadlineItem}>
@@ -140,6 +169,7 @@ export default function Journey() {
             </div>
           </div>
 
+          {/* Document Checklist Card */}
           <div className={styles.card}>
             <h3><FileText size={18} /> Required Documents</h3>
             <p className={styles.docDesc}>Bring ONE of these to the polling booth:</p>
@@ -164,3 +194,4 @@ export default function Journey() {
     </div>
   );
 }
+

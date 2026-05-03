@@ -36,6 +36,6 @@ describe('Gemini Action', () => {
 
     const result = await askGemini("test");
     
-    expect(result.error).toContain("Failed to connect to the AI Assistant");
+    expect(result.error).toContain("The AI Assistant is currently unavailable");
   });
 });

@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/Button';
 import styles from './page.module.css';
 import { ChevronRight } from 'lucide-react';
 
+/**
+ * ONBOARDING CONFIGURATION
+ * ------------------------
+ * Defines the question flow for creating a personalized voter profile.
+ * This data drives the rest of the application's logic.
+ */
 const QUESTIONS = [
   {
     id: 'region',
@@ -23,15 +29,22 @@ const QUESTIONS = [
     id: 'concerns',
     title: 'What do you need help with the most?',
     options: ['Registering to vote / ID Card', 'Finding my polling booth', 'Understanding the process', 'Busting myths and rumors'],
-    multiple: true
+    multiple: true // Allows selecting multiple checkboxes
   }
 ];
 
+/**
+ * ONBOARDING PAGE (WIZARD)
+ * ------------------------
+ * A multi-step form that captures user context.
+ * It provides a "zero-barrier" entry by not requiring email/password.
+ */
 export default function Onboarding() {
   const router = useRouter();
   const { saveProfile, isSyncing } = useUserContext();
-  const [step, setStep] = useState(0);
   
+  // --- STATE MANAGEMENT ---
+  const [step, setStep] = useState(0); // Tracks current question index
   const [answers, setAnswers] = useState<Record<string, any>>({
     region: 'India (National)',
     isFirstTimeVoter: '',
@@ -40,8 +53,13 @@ export default function Onboarding() {
 
   const currentQuestion = QUESTIONS[step];
 
+  /**
+   * Selection Logic
+   * Handles both single-choice (auto-advancing) and multiple-choice options.
+   */
   const handleOptionClick = (option: string) => {
     if (currentQuestion.multiple) {
+      // Toggle logic for multi-select
       const currentSelection = answers[currentQuestion.id] as string[];
       if (currentSelection.includes(option)) {
         setAnswers({
@@ -55,32 +73,41 @@ export default function Onboarding() {
         });
       }
     } else {
+      // Direct set for single-select
       setAnswers({
         ...answers,
         [currentQuestion.id]: option
       });
-      // Auto-advance for single choice if it's not the last step
+      // UX Improvement: Auto-advance for single choice to reduce clicks
       if (step < QUESTIONS.length - 1) {
         setTimeout(() => setStep(step + 1), 300);
       }
     }
   };
 
+  /**
+   * Navigation Logic
+   * Handles 'Next' and 'Final Submit' actions.
+   */
   const handleNext = async () => {
     if (step < QUESTIONS.length - 1) {
       setStep(step + 1);
     } else {
-      // Save profile and redirect to journey
+      // Save profile to context/cloud and redirect to the journey dashboard
       await saveProfile({
         region: answers.region,
         isFirstTimeVoter: answers.isFirstTimeVoter === 'Yes, this is my first time',
-        ageGroup: '18+', // simplified for demo
+        ageGroup: '18+', 
         concerns: answers.concerns
       });
       router.push('/journey');
     }
   };
 
+  /**
+   * Validation Helper
+   * Ensures the user cannot proceed without selecting at least one option.
+   */
   const isCurrentStepValid = () => {
     const value = answers[currentQuestion.id];
     if (currentQuestion.multiple) {
@@ -91,6 +118,7 @@ export default function Onboarding() {
 
   return (
     <div className={`container ${styles.onboardingContainer}`}>
+      {/* Progress Indicator */}
       <div className={styles.progressContainer} aria-label={`Step ${step + 1} of ${QUESTIONS.length}`}>
         <div className={styles.progressBar}>
           <div 
@@ -100,6 +128,7 @@ export default function Onboarding() {
         </div>
       </div>
 
+      {/* Main Question Card */}
       <div className={styles.questionCard}>
         <h1 className={styles.questionTitle}>{currentQuestion.title}</h1>
         {currentQuestion.description && (
@@ -125,13 +154,14 @@ export default function Onboarding() {
           })}
         </div>
 
+        {/* Navigation Actions */}
         <div className={styles.actions}>
           {step > 0 ? (
             <Button variant="ghost" onClick={() => setStep(step - 1)}>
               Back
             </Button>
           ) : (
-            <div /> // Spacer
+            <div /> // CSS grid spacer
           )}
           <Button 
             onClick={handleNext} 
@@ -147,3 +177,4 @@ export default function Onboarding() {
     </div>
   );
 }
+

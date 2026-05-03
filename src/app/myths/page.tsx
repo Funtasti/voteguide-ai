@@ -6,14 +6,27 @@ import { ShieldCheck, ShieldAlert, Volume2, Search, Sparkles, Loader2, Send } fr
 import { askGemini } from '@/app/actions/gemini';
 import styles from './page.module.css';
 
+/**
+ * MYTH BUSTER PAGE
+ * ----------------
+ * This page serves two purposes:
+ * 1. A curated list of static election myths with A11Y features (Text-to-Speech).
+ * 2. An AI-powered assistant for real-time myth debunking and civic queries.
+ */
 export default function Myths() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [speakingId, setSpeakingId] = useState<string | null>(null);
-  const [aiQuery, setAiQuery] = useState('');
-  const [aiResponse, setAiResponse] = useState<string | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
+  // --- STATE MANAGEMENT ---
+  const [searchTerm, setSearchTerm] = useState('');     // Filters the static myth list
+  const [speakingId, setSpeakingId] = useState<string | null>(null); // Tracks active TTS
+  const [aiQuery, setAiQuery] = useState('');           // The user's AI input
+  const [aiResponse, setAiResponse] = useState<string | null>(null); // Gemini's response
+  const [isAiLoading, setIsAiLoading] = useState(false); // UI loading state
+  const [aiError, setAiError] = useState<string | null>(null); // Error handling for AI
 
+  /**
+   * AI INTERACTION HANDLER
+   * ----------------------
+   * Sends the user's rumor or query to the askGemini server action.
+   */
   const handleAiAsk = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!aiQuery.trim()) return;
@@ -22,6 +35,7 @@ export default function Myths() {
     setAiError(null);
     setAiResponse(null);
 
+    // Call the server action (utilizes Google Cloud Vertex AI)
     const result = await askGemini(aiQuery);
     
     if (result.error) {
@@ -32,28 +46,39 @@ export default function Myths() {
     setIsAiLoading(false);
   };
 
+  // Logic to filter the local myth database based on user input
   const filteredMyths = mockIndianElectionData.myths.filter(
     (m) => m.myth.toLowerCase().includes(searchTerm.toLowerCase()) || 
            m.fact.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  /**
+   * ACCESSIBILITY: TEXT-TO-SPEECH (TTS)
+   * ----------------------------------
+   * Uses the Web Speech API to provide audio accessibility for low-literacy users.
+   * Includes fallback logic for Indian English voices.
+   * 
+   * @param id - Unique identifier for the item being read.
+   * @param text - The content to read aloud.
+   */
   const speak = (id: string, text: string) => {
+    // 1. Browser Support Check
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       alert("Your browser does not support speech synthesis.");
       return;
     }
     
-    // Stop any ongoing speech
+    // 2. Control Logic: Toggle speech off if the same button is clicked again
     window.speechSynthesis.cancel();
-
     if (speakingId === id) {
       setSpeakingId(null);
       return;
     }
 
+    // 3. Configuration: Set up the utterance
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Try to find an Indian English voice, fallback to any English voice, or system default
+    // 4. Voice Selection: Optimization for the Indian context
     const voices = window.speechSynthesis.getVoices();
     const preferredVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'en_IN') 
                         || voices.find(v => v.lang.startsWith('en'))
@@ -66,12 +91,13 @@ export default function Myths() {
       utterance.lang = 'en-US';
     }
 
-    utterance.rate = 0.9;
+    utterance.rate = 0.9; // Slightly slower for better clarity
     utterance.pitch = 1.0;
     
+    // 5. Lifecycle Management
     utterance.onend = () => setSpeakingId(null);
     utterance.onerror = (event) => {
-      console.error("SpeechSynthesis error:", event);
+      console.error("Web Speech API Error:", event);
       setSpeakingId(null);
     };
     
@@ -81,6 +107,7 @@ export default function Myths() {
 
   return (
     <div className={`container ${styles.mythsContainer}`}>
+      {/* Header & Search */}
       <div className={styles.header}>
         <h1>Myth Buster</h1>
         <p>Protect your vote by separating fact from fiction. Understand common misconceptions about the election process.</p>
@@ -98,6 +125,7 @@ export default function Myths() {
         </div>
       </div>
 
+      {/* AI Assistant Section */}
       <div className={styles.aiSection}>
         <div className={styles.aiCard}>
           <div className={styles.aiHeader}>
@@ -124,6 +152,7 @@ export default function Myths() {
             </button>
           </form>
 
+          {/* AI Response Display */}
           {(aiResponse || aiError) && (
             <div className={`${styles.aiResult} ${aiError ? styles.aiError : ''}`}>
               <div className={styles.aiResultHeader}>
@@ -146,6 +175,7 @@ export default function Myths() {
         </div>
       </div>
 
+      {/* Static Myths List */}
       <div className={styles.mythsGrid}>
         {filteredMyths.length > 0 ? (
           filteredMyths.map((item) => (
@@ -189,3 +219,4 @@ export default function Myths() {
     </div>
   );
 }
+

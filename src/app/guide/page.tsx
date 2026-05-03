@@ -7,9 +7,23 @@ import { Button } from '@/components/ui/Button';
 import {
   User, UserCheck, AlertTriangle, HelpCircle, ChevronRight, ArrowRight
 } from 'lucide-react';
-import { VotingProcess } from '@/components/ui/VotingProcess';
+import dynamic from 'next/dynamic';
 import styles from './page.module.css';
 
+/**
+ * OPTIMIZATION: Dynamic Component Loading
+ * --------------------------------------
+ * We use next/dynamic to lazy-load the interactive VotingProcess component.
+ * This keeps the initial 'Guide' page bundle small and efficient.
+ */
+const VotingProcess = dynamic(() => import('@/components/ui/VotingProcess').then(mod => mod.VotingProcess), {
+  loading: () => <div style={{ height: '200px', background: '#f1f5f9', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading Animation...</div>,
+  ssr: false
+});
+
+/**
+ * SCENARIO TYPES & INTERFACES
+ */
 type ScenarioId = 'first-time' | 'missed-deadline' | 'confused' | 'returning';
 
 interface Scenario {
